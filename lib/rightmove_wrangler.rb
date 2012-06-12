@@ -96,7 +96,7 @@ module RightmoveWrangler
               payload = {
                 row_set: {
                   tag: archive.branch_id,
-                  timestamp: archive.timestamp,
+                  timestamp: archive.timestamp.to_i,
                   rows: rows
                 }
               }
