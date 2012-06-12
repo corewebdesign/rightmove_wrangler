@@ -14,4 +14,11 @@ Gem::Specification.new do |gem|
   gem.name          = "rightmove_wrangler"
   gem.require_paths = ["lib"]
   gem.version       = RightmoveWrangler::VERSION
+
+  gem.add_runtime_dependency 'rightmove'
+  gem.add_runtime_dependency 'blm'
+  gem.add_runtime_dependency 'faraday'
+  gem.add_runtime_dependency 'multipart-post'
+  gem.add_runtime_dependency 'addressable'
+  gem.add_runtime_dependency 'daemons'
 end
