@@ -5,7 +5,6 @@ require "rightmove"
 require "optparse"
 require "faraday"
 require "addressable/uri"
-require "pry"
 
 module RightmoveWrangler
   class Processor
@@ -96,6 +95,8 @@ module RightmoveWrangler
         
               payload = {
                 row_set: {
+                  tag: archive.branch_id,
+                  timestamp: archive.timestamp,
                   rows: rows
                 }
               }
