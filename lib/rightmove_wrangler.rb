@@ -31,7 +31,6 @@ module RightmoveWrangler
             raise ex if @options[:trace] || SystemExit === ex
             $stderr.print "#{ex.class}: " if ex.class != RuntimeError
             $stderr.puts ex.message
-            $stderr.puts '  Use --trace for backtrace.'
           end
           sleep 5
         end
