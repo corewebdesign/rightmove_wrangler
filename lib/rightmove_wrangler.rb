@@ -9,6 +9,7 @@ require "addressable/uri"
 module RightmoveWrangler
   class Processor
     attr_accessor :directory_list
+    IMAGE_REGEX = /\.(jpg|jpeg|png|gif)/i
 
     def initialize(args)
       @args = args
@@ -73,37 +74,11 @@ module RightmoveWrangler
         threads = [] 
         Dir.foreach(@options[:path]) do |file|
           $stdout.puts "Checking #{file}"
-          if file =~ /\.zip/i
-            $stdout.puts "Working on #{file}"
+          if match = file =~ /\.(zip|blm)/i
             threads << Thread.new do
-              zip_file = Zip::ZipFile.open("#{@options[:path]}/#{file}")
-              archive = Rightmove::Archive.new(zip_file) 
-              
-              rows = archive.document.data.collect do |row|
-                row_hash = {}
-                # This is a bit odd, but essentially it actually turns media rows into files
-                row.attributes.each do |key, value|
-                  row_hash[key] = if value =~ /\.(jpg|jpeg|png|gif)/i
-                    $stdout.puts "Instantiated file #{value}"
-                    instantiate(value, zip_file)
-                  else
-                    value
-                  end
-                end
-                row_hash
-              end
-        
-              payload = {
-                row_set: {
-                  tag: archive.branch_id,
-                  timestamp: archive.timestamp.to_i,
-                  rows: rows
-                }
-              }
-              post!(payload)
+              $stdout.puts "Working on #{file}"
+              send("work_#{match[1]}_file".to_sym)
             end
-          else
-            $stdout.puts "Not a zip file: #{file}"
           end
         end
         threads.each do |t|
@@ -116,7 +91,54 @@ module RightmoveWrangler
       end
     end
 
-    def instantiate(file_name, zip_file)
+    def work_blm_file(file)
+      blm = BLM.new( File.open(file, "r").read )
+      rows = blm.data.collect do |row|
+        row_hash = {}
+        row.attributes.each do |key, value|
+          row_hash[key] = if value =~ IMAGE_REGEX
+            $stdout.puts "Instantiated file #{value}"
+            instantiate_from_dir(value, @options[:path])
+          else
+            value
+          end
+        end
+      end
+    end
+
+    def work_zip_file(file)
+      zip_file = Zip::ZipFile.open("#{@options[:path]}/#{file}")
+      archive = Rightmove::Archive.new(zip_file) 
+      
+      rows = archive.document.data.collect do |row|
+        row_hash = {}
+        # This is a bit odd, but essentially it actually turns media rows into files
+        row.attributes.each do |key, value|
+          row_hash[key] = if value =~ IMAGE_REGEX
+            $stdout.puts "Instantiated file #{value}"
+            instantiate_from_zip_file(value, zip_file)
+          else
+            value
+          end
+        end
+        row_hash
+      end
+
+      payload = {
+        row_set: {
+          tag: archive.branch_id,
+          timestamp: archive.timestamp.to_i,
+          rows: rows
+        }
+      }
+      post!(payload)
+    end
+
+    def instantiate_from_dir(file_name, dir)
+
+    end
+
+    def instantiate_from_zip_file(file_name, zip_file)
       matching_files = zip_file.entries.select {|v| v.to_s =~ /#{file_name}/ }
       if matching_files.empty?
         $stdout.puts "Couldn't find file: #{file_name}"
@@ -124,11 +146,23 @@ module RightmoveWrangler
       else
         $stdout.puts "Found file: #{file_name}"
         file = StringIO.new( zip_file.read(matching_files.first) )
-        file.class.class_eval { attr_accessor :original_filename, :content_type }
-        file.original_filename = matching_files.first.to_s
-        file.content_type = "image/jpg"
-        Faraday::UploadIO.new(file, file_name, file.content_type)
+        instantiate_file(file, file_name)
       end
+    end
+
+    def instantiate_file(file, file_name = nil, content_type = nil)
+      if !file.respond_to?(:original_filename)
+        file.class.class_eval { attr_accessor :original_filename }
+        file.original_filename = file_name
+      end
+
+      if !file.respond_to?(:content_type)
+        content_type ||= "image/jpg"
+        file.class.class_eval { attr_accessor :content_type }
+        file.content_type = content_type
+      end
+
+      Faraday::UploadIO.new(file, file_name, file.content_type)
     end
 
     def post!(payload)
