@@ -9,7 +9,7 @@ Gem::Specification.new do |gem|
   gem.homepage      = "http://github.com/corewebdesign/rightmove_wrangler"
 
   gem.files         = `git ls-files`.split($\)
-  gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
+  gem.executables   = ["rightmove_wrangler", "rightmove_wranglerd"]
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = "rightmove_wrangler"
   gem.require_paths = ["lib"]
