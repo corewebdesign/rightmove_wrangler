@@ -135,7 +135,14 @@ module RightmoveWrangler
     end
 
     def instantiate_from_dir(file_name, dir)
-
+      path = File.join(file_name, dir)
+      if File.exists?(path)
+        $stdout.puts "Found file: #{path}"
+        instantiate_file File.open(path)
+      else
+        $stdout.puts "Couldn't find file: #{path}"
+        file_name
+      end
     end
 
     def instantiate_from_zip_file(file_name, zip_file)
