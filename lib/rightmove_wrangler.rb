@@ -63,7 +63,7 @@ module RightmoveWrangler
     private
     def process!
       files = Dir.entries(@options[:path])
-      if self.directory_list == files
+      if directory_list == files
         $stdout.puts 'Nothing changed since last poll'
         return
       else
