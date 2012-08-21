@@ -92,7 +92,7 @@ module RightmoveWrangler
     end
 
     def work_blm_file(file)
-      blm = BLM.new( File.open(file, "r").read )
+      blm = BLM::Document.new( File.open(file, "r").read )
       rows = blm.data.collect do |row|
         row_hash = {}
         row.attributes.each do |key, value|
