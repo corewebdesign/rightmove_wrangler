@@ -74,10 +74,10 @@ module RightmoveWrangler
         threads = [] 
         Dir.foreach(@options[:path]) do |file|
           $stdout.puts "Checking #{file}"
-          if match = file =~ /\.(zip|blm)/i
+          if match = /\.(zip|blm)/i.match(file)
             threads << Thread.new do
               $stdout.puts "Working on #{file}"
-              send("work_#{match[1]}_file".to_sym)
+              send("work_#{match}_file".to_sym)
             end
           end
         end
