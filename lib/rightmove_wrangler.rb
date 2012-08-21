@@ -77,7 +77,7 @@ module RightmoveWrangler
           if match = /\.(zip|blm)/i.match(file)
             threads << Thread.new do
               $stdout.puts "Working on #{file}"
-              send("work_#{match[1]}_file".to_sym)
+              send("work_#{match[1]}_file".to_sym, file)
             end
           end
         end
