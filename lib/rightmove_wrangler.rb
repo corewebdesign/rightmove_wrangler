@@ -49,6 +49,10 @@ module RightmoveWrangler
         @options[:url] = url
       end
 
+      opts.on('-a', '--app_id APP_ID', 'App ID for API') do |app_id|
+        @options[:app_id] = app_id
+      end
+
       opts.on_tail('-h', '--help', 'Show this message') do
         puts opts
         exit
@@ -103,7 +107,15 @@ module RightmoveWrangler
             value
           end
         end
+        row_hash
       end
+
+      payload = {
+        tag: @options[:app_id],
+        timestamp: Time.now.to_i,
+        rows: rows
+      }
+      post!(payload)
     end
 
     def work_zip_file(file)
@@ -126,7 +138,7 @@ module RightmoveWrangler
 
       payload = {
         row_set: {
-          tag: archive.branch_id,
+          tag: @options[:app_id],
           timestamp: archive.timestamp.to_i,
           rows: rows
         }
