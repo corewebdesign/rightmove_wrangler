@@ -96,7 +96,7 @@ module RightmoveWrangler
     end
 
     def work_blm_file(file)
-      blm = BLM::Document.new( File.open(file, "r").read )
+      blm = BLM::Document.new( force_convert_utf8(File.open(file, "r").read) )
       rows = blm.data.collect do |row|
         row_hash = {}
         row.attributes.each do |key, value|
@@ -208,6 +208,22 @@ module RightmoveWrangler
         return false
       end
     end
+  end
+
+  def force_convert_utf8(string)
+    begin
+      # Try it as UTF-8 directly
+      cleaned = string.dup.force_encoding('UTF-8')
+      unless cleaned.valid_encoding?
+        # Some of it might be old Windows code page
+        cleaned = string.encode( 'UTF-8', 'Windows-1252' )
+      end
+      utf8_string = cleaned
+    rescue EncodingError
+      # Force it to UTF-8, throwing out invalid bits
+      utf8_string = string.encode!( 'UTF-8', invalid: :replace, undef: :replace )
+    end
+    utf8_string
   end
   
 end
