@@ -197,7 +197,7 @@ module RightmoveWrangler
         builder.adapter  :net_http
       end
 
-      params = uri.query_values.present? ? uri.query_values.merge(payload) : payload
+      params = uri.query_values.nil? ? payload : uri.query_values.merge(payload)
       response = conn.post uri.path, params
       
       if response.status == 200
