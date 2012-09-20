@@ -147,7 +147,7 @@ module RightmoveWrangler
     end
 
     def instantiate_from_dir(file_name, dir)
-      path = File.join(file_name, dir)
+      path = File.join(dir, file_name)
       if File.exists?(path)
         $stdout.puts "Found file: #{path}"
         instantiate_file File.open(path)
@@ -197,7 +197,7 @@ module RightmoveWrangler
         builder.adapter  :net_http
       end
 
-      params = uri.query_values.merge(payload)
+      params = uri.query_values.present? ? uri.query_values.merge(payload) : payload
       response = conn.post uri.path, params
       
       if response.status == 200
